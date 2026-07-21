@@ -119,6 +119,19 @@
 
 <div class="card">
   <div class="section-title">
+    <h2>เวลาเฉลี่ย</h2>
+    <span class="date" id="avg-range"></span>
+  </div>
+  <div class="stats">
+    <div class="stat"><div class="num" id="a-pee">—</div><div class="lbl">ห่างกันเฉลี่ย (ฉี่)</div></div>
+    <div class="stat"><div class="num" id="a-poo">—</div><div class="lbl">ห่างกันเฉลี่ย (อึ)</div></div>
+    <div class="stat"><div class="num" id="a-perday">—</div><div class="lbl">ครั้ง/วัน</div></div>
+  </div>
+  <div class="s" id="a-next" style="text-align:center;color:var(--muted);font-size:.82rem;margin-top:12px"></div>
+</div>
+
+<div class="card">
+  <div class="section-title">
     <h2>ประวัติ</h2>
     <span class="date" id="today-date"></span>
   </div>
@@ -187,6 +200,57 @@ function fmtAgo(iso){
   if(h < 24) return Math.floor(h)+' ชม.ก่อน';
   return Math.floor(h/24)+' วันก่อน';
 }
+function fmtDuration(min){
+  if(min == null || !isFinite(min)) return '—';
+  min = Math.round(min);
+  if(min < 60) return min+' นาที';
+  const h = Math.floor(min/60), m = min%60;
+  if(h < 24) return m ? h+' ชม. '+m+' น.' : h+' ชม.';
+  const d = Math.floor(h/24), rh = h%24;
+  return rh ? d+' วัน '+rh+' ชม.' : d+' วัน';
+}
+
+// ระยะห่างเฉลี่ยระหว่างการขับถ่ายแต่ละครั้ง (นาที) เฉพาะช่วงห่างภายในวันเดียวกัน
+function avgGap(type){
+  const times = logs.filter(l=>l.type===type)
+    .map(l=> new Date(l.time).getTime())
+    .sort((a,b)=>a-b);
+  if(times.length < 2) return null;
+  let sum = 0, n = 0;
+  for(let i=1;i<times.length;i++){
+    if(sameDay(times[i-1], times[i])){ sum += times[i]-times[i-1]; n++; }
+  }
+  return n ? sum/n/60000 : null;
+}
+
+function renderAverages(){
+  const now = new Date();
+  const pee = avgGap('pee'), poo = avgGap('poo');
+  document.getElementById('a-pee').textContent = fmtDuration(pee);
+  document.getElementById('a-poo').textContent = fmtDuration(poo);
+
+  // ครั้งเฉลี่ยต่อวัน จากจำนวนวันที่มีบันทึก
+  const days = new Set(logs.map(l=> new Date(l.time).toLocaleDateString('en-CA')));
+  const perDay = days.size ? (logs.length/days.size) : 0;
+  document.getElementById('a-perday').textContent = days.size ? perDay.toFixed(1) : '—';
+
+  const rangeEl = document.getElementById('avg-range');
+  rangeEl.textContent = days.size ? 'จาก '+days.size+' วัน' : '';
+
+  // คาดการณ์รอบฉี่ครั้งถัดไปจากระยะห่างเฉลี่ย
+  const nextEl = document.getElementById('a-next');
+  const lastPee = logs.filter(l=>l.type==='pee')
+    .map(l=> new Date(l.time).getTime()).sort((a,b)=>b-a)[0];
+  if(pee && lastPee){
+    const due = lastPee + pee*60000;
+    const mins = (due - Date.now())/60000;
+    nextEl.textContent = mins > 0
+      ? '💛 คาดว่าจะฉี่อีกครั้งในอีกประมาณ '+fmtDuration(mins)
+      : '💛 เลยรอบเฉลี่ยมาแล้วประมาณ '+fmtDuration(-mins);
+  } else {
+    nextEl.textContent = 'บันทึกอย่างน้อย 2 ครั้งเพื่อดูค่าเฉลี่ย';
+  }
+}
 
 function render(){
   const now = new Date();
@@ -199,6 +263,8 @@ function render(){
 
   const sorted = [...logs].sort((a,b)=> new Date(b.time)-new Date(a.time));
   document.getElementById('s-last').textContent = sorted.length ? fmtAgo(sorted[0].time) : '—';
+
+  renderAverages();
 
   const list = document.getElementById('log-list');
   if(!sorted.length){
