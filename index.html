@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#5b8def">
+<title>บันทึกการขับถ่ายของน้องหมา 🐶</title>
+<link rel="manifest" href="manifest.json">
+<style>
+  :root{
+    --bg:#f4f6fb; --card:#ffffff; --text:#1f2b3a; --muted:#7c8aa0;
+    --line:#e6ebf3; --primary:#5b8def; --pee:#f6c445; --poo:#a9744f;
+    --danger:#ef5f6b; --ok:#37c98a; --shadow:0 6px 20px rgba(30,50,90,.08);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0f1621; --card:#18212f; --text:#eaf0f8; --muted:#8697ad;
+      --line:#26313f; --shadow:0 6px 20px rgba(0,0,0,.35);
+    }
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{
+    margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans Thai",sans-serif;
+    background:var(--bg);color:var(--text);padding:16px;padding-bottom:40px;
+    max-width:520px;margin:0 auto;line-height:1.5;
+  }
+  header{text-align:center;margin:12px 0 20px}
+  header h1{font-size:1.4rem;margin:0}
+  header p{color:var(--muted);margin:4px 0 0;font-size:.9rem}
+
+  .quick{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+  .qbtn{
+    border:none;border-radius:18px;padding:22px 12px;font-size:1.05rem;font-weight:700;
+    color:#fff;cursor:pointer;box-shadow:var(--shadow);transition:transform .08s;
+    display:flex;flex-direction:column;align-items:center;gap:6px;
+  }
+  .qbtn:active{transform:scale(.96)}
+  .qbtn .emoji{font-size:1.9rem}
+  .qbtn.pee{background:linear-gradient(135deg,#f7cf57,#f0b429)}
+  .qbtn.pee{color:#5b4300}
+  .qbtn.poo{background:linear-gradient(135deg,#b9855f,#8a5a3a)}
+
+  .card{
+    background:var(--card);border-radius:18px;padding:16px;margin-bottom:16px;
+    box-shadow:var(--shadow);
+  }
+  .stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center}
+  .stat .num{font-size:1.5rem;font-weight:800}
+  .stat .lbl{font-size:.75rem;color:var(--muted)}
+
+  .row{display:flex;align-items:center;gap:12px;padding:12px 4px;border-bottom:1px solid var(--line)}
+  .row:last-child{border-bottom:none}
+  .row .ico{font-size:1.5rem;width:40px;height:40px;display:flex;align-items:center;justify-content:center;border-radius:12px;background:var(--bg);flex-shrink:0}
+  .row .info{flex:1;min-width:0}
+  .row .info .t{font-weight:700}
+  .row .info .s{font-size:.82rem;color:var(--muted)}
+  .row .del{border:none;background:transparent;color:var(--muted);font-size:1.1rem;cursor:pointer;padding:6px}
+  .row .del:active{color:var(--danger)}
+
+  .section-title{display:flex;justify-content:space-between;align-items:center;margin:0 4px 8px}
+  .section-title h2{font-size:1.05rem;margin:0}
+  .section-title .date{font-size:.85rem;color:var(--muted)}
+
+  .empty{text-align:center;color:var(--muted);padding:28px 12px}
+  .empty .big{font-size:2.4rem}
+
+  .tag{font-size:.7rem;padding:2px 8px;border-radius:999px;font-weight:700}
+  .tag.pee{background:rgba(240,180,41,.18);color:#c98f00}
+  .tag.poo{background:rgba(138,90,58,.18);color:#8a5a3a}
+
+  .toolbar{display:flex;gap:8px;justify-content:center;margin-top:4px}
+  .lnk{border:none;background:transparent;color:var(--primary);font-size:.85rem;cursor:pointer;padding:6px 10px;font-weight:600}
+
+  dialog{
+    border:none;border-radius:18px;padding:20px;max-width:340px;width:90%;
+    background:var(--card);color:var(--text);box-shadow:var(--shadow);
+  }
+  dialog::backdrop{background:rgba(15,22,33,.5)}
+  dialog h3{margin:0 0 12px}
+  dialog label{display:block;font-size:.85rem;color:var(--muted);margin:10px 0 4px}
+  dialog input,dialog select,dialog textarea{
+    width:100%;padding:10px;border-radius:12px;border:1px solid var(--line);
+    background:var(--bg);color:var(--text);font-size:1rem;font-family:inherit;
+  }
+  .dlg-actions{display:flex;gap:8px;margin-top:16px}
+  .dlg-actions button{flex:1;padding:12px;border-radius:12px;border:none;font-weight:700;font-size:.95rem;cursor:pointer}
+  .btn-primary{background:var(--primary);color:#fff}
+  .btn-ghost{background:var(--bg);color:var(--text)}
+  .toast{
+    position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(100px);
+    background:var(--text);color:var(--bg);padding:12px 20px;border-radius:999px;
+    font-weight:600;font-size:.9rem;opacity:0;transition:.3s;z-index:99;
+  }
+  .toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+</style>
+</head>
+<body>
+<header>
+  <h1>🐶 บันทึกการขับถ่าย</h1>
+  <p id="pet-line">แตะปุ่มเมื่อน้องหมาฉี่หรืออึ</p>
+</header>
+
+<div class="quick">
+  <button class="qbtn pee" onclick="quickLog('pee')">
+    <span class="emoji">💛</span>ฉี่
+  </button>
+  <button class="qbtn poo" onclick="quickLog('poo')">
+    <span class="emoji">💩</span>อึ
+  </button>
+</div>
+
+<div class="card">
+  <div class="stats" id="stats">
+    <div class="stat"><div class="num" id="s-pee">0</div><div class="lbl">ฉี่วันนี้</div></div>
+    <div class="stat"><div class="num" id="s-poo">0</div><div class="lbl">อึวันนี้</div></div>
+    <div class="stat"><div class="num" id="s-last">—</div><div class="lbl">ล่าสุด</div></div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="section-title">
+    <h2>ประวัติ</h2>
+    <span class="date" id="today-date"></span>
+  </div>
+  <div id="log-list"></div>
+  <div class="toolbar">
+    <button class="lnk" onclick="openManual()">+ เพิ่มย้อนหลัง</button>
+    <button class="lnk" onclick="exportData()">ส่งออก</button>
+    <button class="lnk" onclick="clearAll()" style="color:var(--danger)">ล้างทั้งหมด</button>
+  </div>
+</div>
+
+<!-- Manual add dialog -->
+<dialog id="manual-dlg">
+  <h3>เพิ่มบันทึกย้อนหลัง</h3>
+  <label>ประเภท</label>
+  <select id="m-type">
+    <option value="pee">💛 ฉี่</option>
+    <option value="poo">💩 อึ</option>
+  </select>
+  <label>เวลา</label>
+  <input type="datetime-local" id="m-time">
+  <label>บันทึกเพิ่มเติม (ไม่บังคับ)</label>
+  <input type="text" id="m-note" placeholder="เช่น สีปกติ, หน้าบ้าน">
+  <div class="dlg-actions">
+    <button class="btn-ghost" onclick="closeManual()">ยกเลิก</button>
+    <button class="btn-primary" onclick="saveManual()">บันทึก</button>
+  </div>
+</dialog>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const KEY = 'dog-potty-logs-v1';
+let logs = load();
+
+function load(){
+  try{ return JSON.parse(localStorage.getItem(KEY)) || []; }
+  catch(e){ return []; }
+}
+function save(){ localStorage.setItem(KEY, JSON.stringify(logs)); }
+
+function quickLog(type){
+  logs.push({ id: Date.now(), type, time: new Date().toISOString(), note:'' });
+  save(); render();
+  toast(type==='pee' ? '💛 บันทึกฉี่แล้ว' : '💩 บันทึกอึแล้ว');
+}
+
+function delLog(id){
+  logs = logs.filter(l => l.id !== id);
+  save(); render();
+}
+
+function sameDay(iso, ref){
+  const d = new Date(iso), r = new Date(ref);
+  return d.getFullYear()===r.getFullYear() && d.getMonth()===r.getMonth() && d.getDate()===r.getDate();
+}
+
+function fmtTime(iso){
+  return new Date(iso).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});
+}
+function fmtAgo(iso){
+  const diff = (Date.now() - new Date(iso).getTime())/60000;
+  if(diff < 1) return 'เมื่อกี้';
+  if(diff < 60) return Math.floor(diff)+' นาทีก่อน';
+  const h = diff/60;
+  if(h < 24) return Math.floor(h)+' ชม.ก่อน';
+  return Math.floor(h/24)+' วันก่อน';
+}
+
+function render(){
+  const now = new Date();
+  document.getElementById('today-date').textContent =
+    now.toLocaleDateString('th-TH',{weekday:'long',day:'numeric',month:'long'});
+
+  const todayLogs = logs.filter(l => sameDay(l.time, now));
+  document.getElementById('s-pee').textContent = todayLogs.filter(l=>l.type==='pee').length;
+  document.getElementById('s-poo').textContent = todayLogs.filter(l=>l.type==='poo').length;
+
+  const sorted = [...logs].sort((a,b)=> new Date(b.time)-new Date(a.time));
+  document.getElementById('s-last').textContent = sorted.length ? fmtAgo(sorted[0].time) : '—';
+
+  const list = document.getElementById('log-list');
+  if(!sorted.length){
+    list.innerHTML = '<div class="empty"><div class="big">🐾</div>ยังไม่มีบันทึก<br>แตะปุ่มด้านบนเพื่อเริ่ม</div>';
+    return;
+  }
+  list.innerHTML = sorted.slice(0,50).map(l=>{
+    const isPee = l.type==='pee';
+    const day = sameDay(l.time, now) ? '' :
+      `<span style="color:var(--muted)"> · ${new Date(l.time).toLocaleDateString('th-TH',{day:'numeric',month:'short'})}</span>`;
+    return `<div class="row">
+      <div class="ico">${isPee?'💛':'💩'}</div>
+      <div class="info">
+        <div class="t">${isPee?'ฉี่':'อึ'} <span class="tag ${l.type}">${fmtTime(l.time)}</span></div>
+        <div class="s">${fmtAgo(l.time)}${day}${l.note?' · '+escapeHtml(l.note):''}</div>
+      </div>
+      <button class="del" onclick="delLog(${l.id})">✕</button>
+    </div>`;
+  }).join('');
+}
+
+function escapeHtml(s){
+  return s.replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+// Manual add
+function openManual(){
+  const d = document.getElementById('manual-dlg');
+  const now = new Date(Date.now() - new Date().getTimezoneOffset()*60000);
+  document.getElementById('m-time').value = now.toISOString().slice(0,16);
+  document.getElementById('m-note').value = '';
+  d.showModal();
+}
+function closeManual(){ document.getElementById('manual-dlg').close(); }
+function saveManual(){
+  const type = document.getElementById('m-type').value;
+  const time = document.getElementById('m-time').value;
+  const note = document.getElementById('m-note').value.trim();
+  if(!time){ toast('กรุณาเลือกเวลา'); return; }
+  logs.push({ id: Date.now(), type, time: new Date(time).toISOString(), note });
+  save(); render(); closeManual();
+  toast('บันทึกแล้ว');
+}
+
+function exportData(){
+  if(!logs.length){ toast('ยังไม่มีข้อมูล'); return; }
+  const header = 'ประเภท,วันที่,เวลา,บันทึก\n';
+  const rows = [...logs].sort((a,b)=>new Date(a.time)-new Date(b.time)).map(l=>{
+    const d = new Date(l.time);
+    const type = l.type==='pee'?'ฉี่':'อึ';
+    return `${type},${d.toLocaleDateString('th-TH')},${d.toLocaleTimeString('th-TH')},"${(l.note||'').replace(/"/g,'""')}"`;
+  }).join('\n');
+  const blob = new Blob(['﻿'+header+rows], {type:'text/csv;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'dog-potty-log.csv'; a.click();
+  URL.revokeObjectURL(url);
+  toast('ส่งออกไฟล์ CSV แล้ว');
+}
+
+function clearAll(){
+  if(!logs.length) return;
+  if(confirm('ลบบันทึกทั้งหมด? การกระทำนี้ย้อนกลับไม่ได้')){
+    logs = []; save(); render(); toast('ล้างข้อมูลแล้ว');
+  }
+}
+
+let toastTimer;
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>t.classList.remove('show'), 1800);
+}
+
+// refresh "time ago" periodically
+setInterval(render, 60000);
+render();
+
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('sw.js').catch(()=>{});
+}
+</script>
+</body>
+</html>
